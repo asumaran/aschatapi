@@ -1,0 +1,24 @@
+{
+  "name": "aschatapi",
+  "version": "0.0.1",
+  "description": "HTTP API for chat application.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asumaran/aschatapi.git"
+  },
+  "keywords": [
+    "nodejs",
+    "javascript",
+    "typescript"
+  ],
+  "author": "@asumaran",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/asumaran/aschatapi/issues"
+  },
+  "homepage": "https://github.com/asumaran/aschatapi#readme"
+}
