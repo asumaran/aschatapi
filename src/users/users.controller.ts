@@ -5,11 +5,11 @@ import {
   Body,
   Param,
   ParseIntPipe,
-} from "@nestjs/common";
-import { UsersService } from "./users.service";
-import { User } from "@prisma/client";
+} from '@nestjs/common';
+import { UsersService } from './users.service';
+import { User } from 'prisma/generated/prisma/client';
 
-@Controller("users")
+@Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -18,13 +18,13 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  @Get(":id")
-  getOne(@Param("id", ParseIntPipe) id: number) {
+  @Get(':id')
+  getOne(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.findOne(id);
   }
 
   @Post()
-  create(@Body() user: Pick<User, "name" | "email">) {
+  create(@Body() user: Pick<User, 'name' | 'email'>) {
     return this.usersService.create(user);
   }
 }
