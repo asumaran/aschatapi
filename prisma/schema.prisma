@@ -15,12 +15,24 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id                 Int             @id @default(autoincrement())
+  email              String          @unique
+  name               String?
+  channelMemberships ChannelMember[]
 }
 
 model Channel {
-  id   Int    @id @default(autoincrement())
-  name String
+  id      Int             @id @default(autoincrement())
+  name    String
+  members ChannelMember[]
+}
+
+model ChannelMember {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id])
+  userId    Int
+  channel   Channel @relation(fields: [channelId], references: [id])
+  channelId Int
+
+  @@unique([userId, channelId])
 }
