@@ -4,9 +4,15 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ChannelsModule } from './channels/channels.module';
+import { ChannelMembershipsModule } from './channelMemberships/channelMemberships.module';
 
 @Module({
-  imports: [ChannelsModule, UsersModule, PrismaModule],
+  imports: [
+    ChannelsModule,
+    UsersModule,
+    ChannelMembershipsModule,
+    PrismaModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
