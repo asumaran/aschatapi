@@ -22,17 +22,32 @@ model User {
 }
 
 model Channel {
-  id      Int             @id @default(autoincrement())
-  name    String
-  members ChannelMember[]
+  id       Int             @id @default(autoincrement())
+  name     String
+  members  ChannelMember[]
+  messages Message[]
 }
 
 model ChannelMember {
-  id        Int     @id @default(autoincrement())
-  user      User    @relation(fields: [userId], references: [id])
+  id        Int       @id @default(autoincrement())
+  user      User      @relation(fields: [userId], references: [id])
   userId    Int
-  channel   Channel @relation(fields: [channelId], references: [id])
+  channel   Channel   @relation(fields: [channelId], references: [id])
   channelId Int
+  messages  Message[]
 
   @@unique([userId, channelId])
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author          ChannelMember @relation(fields: [channelMemberId], references: [id])
+  channelMemberId Int
+
+  channel   Channel @relation(fields: [channelId], references: [id])
+  channelId Int
 }

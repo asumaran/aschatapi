@@ -1,0 +1,20 @@
+meta {
+  name: Create a New Channel Message
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{API_URL}}/messages
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "channelId": 1,
+    "channelMemberId": 1,
+    "content": "{{$randomLoremSentence}}"
+  }
+  
+}
