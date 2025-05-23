@@ -16,6 +16,14 @@ export class ChannelMembershipsService {
     });
   }
 
+  async getAllChannelMembers(channelId: number): Promise<ChannelMember[]> {
+    return this.prisma.channelMember.findMany({
+      where: {
+        channelId: channelId,
+      },
+    });
+  }
+
   async create(data: Pick<ChannelMember, 'userId' | 'channelId'>) {
     return this.prisma.channelMember.create({
       data,
