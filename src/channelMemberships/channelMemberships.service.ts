@@ -21,6 +21,9 @@ export class ChannelMembershipsService {
       where: {
         channelId: channelId,
       },
+      include: {
+        user: true,
+      },
     });
   }
 
