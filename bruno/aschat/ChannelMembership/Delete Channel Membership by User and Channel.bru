@@ -1,0 +1,16 @@
+meta {
+  name: Delete Channel Membership by User and Channel
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{API_URL}}/channelmemberships/user/1/channel/1
+  body: none
+  auth: inherit
+}
+
+docs {
+  Delete a channel membership by specifying the user ID and channel ID.
+  This removes the relationship between a specific user and channel.
+}
