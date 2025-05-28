@@ -36,11 +36,17 @@ export class UsersService {
     });
   }
 
+  async findOneByEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
+    });
+  }
+
   findOneByUsername(username: string): UserObj | undefined {
     return this.users.find((user) => user.username === username);
   }
 
-  async create(data: Pick<User, 'name' | 'email'>): Promise<User> {
+  async create(data: Pick<User, 'name' | 'email' | 'password'>): Promise<User> {
     return this.prisma.user.create({
       data,
     });

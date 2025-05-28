@@ -12,7 +12,17 @@ post {
 
 body:json {
   {
-    "username": "john",
-    "password": "changeme"
+    "email": "alfredo@mail.test",
+    "password": "password"
   }
+}
+
+docs {
+  Authentication endpoint that requires email and password in plain text.
+  
+  Test credentials:
+  - Email: alfredo@mail.test
+  - Password: password (plain text)
+  
+  The service will hash the password with MD5 internally for comparison.
 }

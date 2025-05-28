@@ -24,7 +24,7 @@ export class UsersController {
   }
 
   @Post()
-  create(@Body() user: Pick<User, 'name' | 'email'>) {
+  create(@Body() user: Pick<User, 'name' | 'email' | 'password'>) {
     return this.usersService.create(user);
   }
 }
