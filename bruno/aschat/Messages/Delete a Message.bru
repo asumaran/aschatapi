@@ -1,0 +1,45 @@
+meta {
+  name: Delete a Message
+  type: http
+  seq: 3
+}
+
+delete {
+  url: http://localhost:4000/messages/24
+  body: none
+  auth: inherit
+}
+
+docs {
+  Delete a message by its ID.
+  
+  **Endpoint:** DELETE /messages/{id}
+  
+  **Path Parameters:**
+  - id (number): The ID of the message to delete
+  
+  **Response:**
+  - 200 OK: Returns the deleted message object
+  - 404 Not Found: Message with the specified ID doesn't exist
+  
+  **Example Response:**
+  ```json
+  {
+    "id": 1,
+    "content": "Hello, World!",
+    "channelId": 1,
+    "channelMemberId": 1,
+    "createdAt": "2025-06-01T10:00:00.000Z",
+    "updatedAt": "2025-06-01T10:00:00.000Z"
+  }
+  ```
+  
+  **Error Response (404):**
+  ```json
+  {
+    "statusCode": 404,
+    "message": "Message with ID 1 not found",
+    "error": "Not Found"
+  }
+  ```
+}

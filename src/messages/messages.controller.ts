@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { Message } from 'prisma/generated/prisma/client';
 
@@ -20,5 +29,16 @@ export class MessagesController {
   @Get(':channelId')
   findOne(@Param('channelId') id: string) {
     return this.messagesService.getAllMessagesOfChannel(Number(id));
+  }
+
+  /**
+   * Delete a message by its ID
+   * @param id - The message ID to delete
+   * @returns The deleted message
+   */
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  async remove(@Param('id') id: string) {
+    return await this.messagesService.delete(Number(id));
   }
 }
