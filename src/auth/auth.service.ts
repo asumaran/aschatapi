@@ -17,7 +17,7 @@ export class AuthService {
   async signIn(
     email: string,
     password: string,
-  ): Promise<{ access_token: string }> {
+  ): Promise<{ access_token: string; userId: number }> {
     const user = await this.usersService.findOneByEmail(email);
 
     if (user === null) {
@@ -37,6 +37,7 @@ export class AuthService {
 
     const payload = { sub: user.id, email: user.email };
     return {
+      userId: user.id,
       access_token: await this.jwtService.signAsync(payload),
     };
   }
