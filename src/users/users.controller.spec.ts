@@ -56,7 +56,11 @@ describe('UsersController', () => {
   });
 
   it('should create a new user', async () => {
-    const newUser = { name: 'Jane Doe', email: 'jane@example.com' };
+    const newUser = {
+      name: 'Jane Doe',
+      email: 'jane@example.com',
+      password: 'foo',
+    };
     const result = await controller.create(newUser);
     expect(result).toEqual({
       id: 1,
