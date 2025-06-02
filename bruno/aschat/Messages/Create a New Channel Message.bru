@@ -18,3 +18,46 @@ body:json {
   }
   
 }
+
+docs {
+  Create a new user message in a channel using the unified message system.
+  
+  **Endpoint:** POST /messages
+  
+  **Request Body:**
+  ```json
+  {
+    "channelId": 1,
+    "channelMemberId": 1,
+    "content": "Hello everyone!"
+  }
+  ```
+  
+  **Response:**
+  Returns the created message from the unified Message table:
+  
+  ```json
+  {
+    "id": 1,
+    "content": "Hello everyone!",
+    "createdAt": "2025-06-02T10:00:00.000Z",
+    "updatedAt": "2025-06-02T10:00:00.000Z",
+    "channelId": 1,
+    "channelMemberId": 1,
+    "botChannelMemberId": null,
+    "replyToMessageId": null
+  }
+  ```
+  
+  **Bot Mention Feature:**
+  If your message content includes bot mentions (e.g., "Hey #1, how are you?"), the system will:
+  1. Store your user message with `channelMemberId`
+  2. Automatically trigger bot responses stored with `botChannelMemberId`
+  3. All messages appear in the unified conversation via GET /messages/{channelId}
+  
+  **Unified System Benefits:**
+  - Single table stores both user and bot messages
+  - Chronological ordering maintained automatically
+  - Simplified client-side message handling
+  - Improved query performance
+}

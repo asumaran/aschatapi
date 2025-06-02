@@ -8,8 +8,8 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { MessagesService } from './messages.service';
-import { Message } from 'prisma/generated/prisma/client';
+import { MessagesService, UnifiedMessage } from './messages.service';
+import { Message } from '@prisma/client';
 
 @Controller('messages')
 export class MessagesController {
@@ -27,8 +27,8 @@ export class MessagesController {
   }
 
   @Get(':channelId')
-  findOne(@Param('channelId') id: string) {
-    return this.messagesService.getAllMessagesOfChannel(Number(id));
+  findOne(@Param('channelId') channelId: string): Promise<UnifiedMessage[]> {
+    return this.messagesService.getAllMessagesOfChannel(Number(channelId));
   }
 
   /**

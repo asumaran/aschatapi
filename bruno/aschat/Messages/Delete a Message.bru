@@ -11,7 +11,7 @@ delete {
 }
 
 docs {
-  Delete a message by its ID.
+  Delete a message by its ID from the unified message system.
   
   **Endpoint:** DELETE /messages/{id}
   
@@ -22,15 +22,31 @@ docs {
   - 200 OK: Returns the deleted message object
   - 404 Not Found: Message with the specified ID doesn't exist
   
-  **Example Response:**
+  **Example Response (User Message):**
   ```json
   {
     "id": 1,
     "content": "Hello, World!",
     "channelId": 1,
     "channelMemberId": 1,
+    "botChannelMemberId": null,
+    "replyToMessageId": null,
     "createdAt": "2025-06-01T10:00:00.000Z",
     "updatedAt": "2025-06-01T10:00:00.000Z"
+  }
+  ```
+  
+  **Example Response (Bot Message):**
+  ```json
+  {
+    "id": 2,
+    "content": "#1 ¡Hola! 👋 ¿Cómo puedo ayudarte?",
+    "channelId": 1,
+    "channelMemberId": null,
+    "botChannelMemberId": 1,
+    "replyToMessageId": 1,
+    "createdAt": "2025-06-01T10:05:00.000Z",
+    "updatedAt": "2025-06-01T10:05:00.000Z"
   }
   ```
   
@@ -42,4 +58,7 @@ docs {
     "error": "Not Found"
   }
   ```
+  
+  **Unified System Note:**
+  This endpoint can delete both user messages (with `channelMemberId`) and bot messages (with `botChannelMemberId`) from the unified Message table.
 }

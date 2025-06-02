@@ -1,4 +1,4 @@
-import { ChannelMember } from 'prisma/generated/prisma/client';
+import { ChannelMember } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 

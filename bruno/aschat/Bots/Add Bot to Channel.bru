@@ -1,0 +1,50 @@
+meta {
+  name: Add Bot to Channel
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:4000/bots/join-channel
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "botId": 1,
+    "channelId": 1
+  }
+}
+
+docs {
+  Add a bot to a specific channel.
+  
+  **Endpoint:** POST /bots/join-channel
+  
+  **Request Body:**
+  ```json
+  {
+    "botId": 1,
+    "channelId": 1
+  }
+  ```
+  
+  **Response:**
+  ```json
+  {
+    "id": 1,
+    "botId": 1,
+    "channelId": 1,
+    "bot": {
+      "id": 1,
+      "name": "Assistant Bot",
+      "isActive": true
+    },
+    "channel": {
+      "id": 1,
+      "name": "General"
+    }
+  }
+  ```
+}

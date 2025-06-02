@@ -1,0 +1,54 @@
+meta {
+  name: Test Bot Mention Flow
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:4000/messages
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "channelId": 1,
+    "channelMemberId": 1,
+    "content": "Hey #1, how are you doing today?"
+  }
+}
+
+tests {
+  test("Should create message successfully", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody()).to.have.property('id');
+    expect(res.getBody()).to.have.property('content', 'Hey #1, how are you doing today?');
+  });
+}
+
+docs {
+  Test the bot mention flow by creating a message that mentions a bot using the unified message system.
+  
+  This should:
+  1. Create the user message in the unified Message table
+  2. Automatically trigger a bot response via the BotMentionService
+  3. Store the bot response in the same unified Message table
+  
+  **Message Format:** Use #{botId} to mention a bot
+  
+  **Example:** "Hey #1, how are you?" mentions bot with ID 1
+  
+  **Expected Flow:**
+  1. User sends: "Hey #1, how are you doing today?" (stored with channelMemberId)
+  2. Bot responds: "#1 ¡Hola! 👋 ¿Cómo puedo ayudarte?" (stored with botChannelMemberId)
+  
+  **Verification Steps:**
+  1. Check unified messages: GET /messages/1 (shows both user and bot messages)
+  2. Check bot-only messages: GET /bots/messages/channel/1 (shows only bot responses)
+  
+  **Unified Message System Benefits:**
+  - Single query retrieves complete conversation flow
+  - Maintains chronological order between user and bot messages
+  - Simplified client-side message handling
+  - Better performance with reduced database queries
+}

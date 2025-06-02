@@ -7,6 +7,7 @@ import { ChannelsModule } from './channels/channels.module';
 import { ChannelMembershipsModule } from './channelMemberships/channelMemberships.module';
 import { MessagesModule } from './messages/messages.module';
 import { AuthModule } from './auth/auth.module';
+import { BotsModule } from './bots/bots.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AuthModule } from './auth/auth.module';
     PrismaModule,
     MessagesModule,
     AuthModule,
+    BotsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,0 +1,65 @@
+meta {
+  name: Get Bot Messages from Channel
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://localhost:4000/bots/messages/channel/1
+  body: none
+  auth: inherit
+}
+
+params:path {
+  channelId: 1
+}
+
+docs {
+  Get all bot messages from a specific channel using the unified message system.
+  
+  **Endpoint:** GET /bots/messages/channel/{channelId}
+  
+  **Path Parameters:**
+  - channelId (number): The ID of the channel
+  
+  **Response:**
+  Returns only bot messages from the unified Message table (filtered by botChannelMemberId IS NOT NULL).
+  
+  ```json
+  [
+    {
+      "id": 2,
+      "content": "#1 ¡Hola! 👋 ¿Cómo puedo ayudarte?",
+      "createdAt": "2025-06-02T10:05:00.000Z",
+      "updatedAt": "2025-06-02T10:05:00.000Z",
+      "channelId": 1,
+      "botChannelMemberId": 1,
+      "replyToMessageId": 1,
+      "botAuthor": {
+        "id": 1,
+        "botId": 1,
+        "channelId": 1,
+        "bot": {
+          "id": 1,
+          "name": "Assistant Bot"
+        }
+      },
+      "replyToMessage": {
+        "id": 1,
+        "content": "Hey #1, how are you?",
+        "createdAt": "2025-06-02T10:04:00.000Z",
+        "updatedAt": "2025-06-02T10:04:00.000Z",
+        "channelId": 1,
+        "channelMemberId": 1
+      }
+    }
+  ]
+  ```
+  
+  **Key Changes from Unified Migration:**
+  - This endpoint queries the unified Message table instead of separate bot_messages table
+  - Filters messages where `botChannelMemberId IS NOT NULL`
+  - Includes full `botAuthor` relationship with nested `bot` data
+  - `replyToMessage` includes both user and bot message references from unified table
+  - Maintains backward compatibility with existing response structure
+}

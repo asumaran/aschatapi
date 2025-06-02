@@ -10,7 +10,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ChannelMembershipsService } from './channelMemberships.service';
-import { ChannelMember } from 'prisma/generated/prisma/client';
+import { ChannelMember } from '@prisma/client';
 
 @Controller('channelMemberships')
 export class ChannelMembershipsController {

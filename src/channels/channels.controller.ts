@@ -7,7 +7,7 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { ChannelsService } from './channels.service';
-import { Channel } from 'prisma/generated/prisma/client';
+import { Channel } from '@prisma/client';
 
 @Controller('channels')
 export class ChannelsController {

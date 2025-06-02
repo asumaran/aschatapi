@@ -7,7 +7,7 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { User } from 'prisma/generated/prisma/client';
+import { User } from '@prisma/client';
 
 @Controller('users')
 export class UsersController {

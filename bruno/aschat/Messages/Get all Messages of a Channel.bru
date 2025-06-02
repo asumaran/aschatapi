@@ -9,3 +9,53 @@ get {
   body: none
   auth: inherit
 }
+
+docs {
+  Get all messages (both user and bot messages) from a specific channel using the unified message system.
+  
+  **Endpoint:** GET /messages/{channelId}
+  
+  **Path Parameters:**
+  - channelId (number): The ID of the channel
+  
+  **Response:**
+  Returns an array of unified messages containing both user and bot messages, ordered by creation time.
+  
+  ```json
+  [
+    {
+      "id": 1,
+      "content": "Hello everyone! Welcome to the General channel.",
+      "createdAt": "2025-06-02T10:00:00.000Z",
+      "updatedAt": "2025-06-02T10:00:00.000Z",
+      "channelId": 1,
+      "type": "user",
+      "author": {
+        "id": 1,
+        "name": "Alfredo Sumaran",
+        "email": "alfredo@mail.test"
+      },
+      "channelMemberId": 1,
+      "replyToMessageId": null
+    },
+    {
+      "id": 2,
+      "content": "#1 ¡Hola! 👋 ¿Cómo puedo ayudarte?",
+      "createdAt": "2025-06-02T10:05:00.000Z",
+      "updatedAt": "2025-06-02T10:05:00.000Z",
+      "channelId": 1,
+      "type": "bot",
+      "author": {
+        "id": 1,
+        "name": "Assistant Bot"
+      },
+      "botChannelMemberId": 1,
+      "replyToMessageId": 1
+    }
+  ]
+  ```
+  
+  **Message Types:**
+  - `type: "user"` - Messages from human users (includes channelMemberId and email)
+  - `type: "bot"` - Messages from bots (includes botChannelMemberId, no email)
+}

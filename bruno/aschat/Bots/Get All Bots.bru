@@ -1,0 +1,41 @@
+meta {
+  name: Get All Bots
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:4000/bots
+  body: none
+  auth: inherit
+}
+
+docs {
+  Get all active bots in the system.
+  
+  **Endpoint:** GET /bots
+  
+  **Response:**
+  ```json
+  [
+    {
+      "id": 1,
+      "name": "Assistant Bot",
+      "isActive": true,
+      "createdAt": "2025-06-01T10:00:00.000Z",
+      "updatedAt": "2025-06-01T10:00:00.000Z",
+      "channelMemberships": [
+        {
+          "id": 1,
+          "botId": 1,
+          "channelId": 1,
+          "channel": {
+            "id": 1,
+            "name": "General"
+          }
+        }
+      ]
+    }
+  ]
+  ```
+}
