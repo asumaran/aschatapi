@@ -22,45 +22,39 @@ model User {
 }
 
 model Bot {
-  id                 Int                @id @default(autoincrement())
+  id                 Int             @id @default(autoincrement())
   name               String
-  isActive           Boolean            @default(true)
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  channelMemberships BotChannelMember[]
+  isActive           Boolean         @default(true)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  channelMemberships ChannelMember[]
 
   @@map("bots")
 }
 
 model Channel {
-  id         Int                @id @default(autoincrement())
-  name       String
-  members    ChannelMember[]
-  messages   Message[]
-  botMembers BotChannelMember[]
+  id       Int             @id @default(autoincrement())
+  name     String
+  members  ChannelMember[]
+  messages Message[]
 }
 
 model ChannelMember {
-  id        Int       @id @default(autoincrement())
-  user      User      @relation(fields: [userId], references: [id])
-  userId    Int
+  id Int @id @default(autoincrement())
+
+  // Member can be either a User or a Bot (only one should be set)
+  user   User? @relation(fields: [userId], references: [id])
+  userId Int?
+  bot    Bot?  @relation(fields: [botId], references: [id])
+  botId  Int?
+
   channel   Channel   @relation(fields: [channelId], references: [id])
   channelId Int
   messages  Message[]
 
+  // Ensure only one type of member is set and unique combinations
   @@unique([userId, channelId])
-}
-
-model BotChannelMember {
-  id        Int       @id @default(autoincrement())
-  bot       Bot       @relation(fields: [botId], references: [id])
-  botId     Int
-  channel   Channel   @relation(fields: [channelId], references: [id])
-  channelId Int
-  messages  Message[]
-
   @@unique([botId, channelId])
-  @@map("bot_channel_members")
 }
 
 model Message {
@@ -69,15 +63,12 @@ model Message {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Author fields - only one will be used per message
-  channelMemberId    Int?
-  botChannelMemberId Int?
+  // Author - unified through ChannelMember
+  channelMemberId Int
 
   // Relations
-  author    ChannelMember?    @relation(fields: [channelMemberId], references: [id])
-  botAuthor BotChannelMember? @relation(fields: [botChannelMemberId], references: [id])
-
-  channel   Channel @relation(fields: [channelId], references: [id])
+  author    ChannelMember @relation(fields: [channelMemberId], references: [id])
+  channel   Channel       @relation(fields: [channelId], references: [id])
   channelId Int
 
   // Reply functionality

@@ -15,7 +15,7 @@ params:path {
 }
 
 docs {
-  Get all bot messages from a specific channel using the unified message system.
+  Get all bot messages from a specific channel using the unified ChannelMember system.
   
   **Endpoint:** GET /bots/messages/channel/{channelId}
   
@@ -23,43 +23,48 @@ docs {
   - channelId (number): The ID of the channel
   
   **Response:**
-  Returns only bot messages from the unified Message table (filtered by botChannelMemberId IS NOT NULL).
+  Returns only bot messages from the unified Message table (filtered by `author.botId IS NOT NULL`).
   
   ```json
   [
     {
-      "id": 2,
-      "content": "#1 ¡Hola! 👋 ¿Cómo puedo ayudarte?",
-      "createdAt": "2025-06-02T10:05:00.000Z",
-      "updatedAt": "2025-06-02T10:05:00.000Z",
+      "id": 5,
+      "content": "#1 ¿Has probado apagarlo y encenderlo de nuevo?",
+      "createdAt": "2025-06-03T20:41:10.736Z",
+      "updatedAt": "2025-06-03T20:41:10.736Z",
+      "channelMemberId": 5,
       "channelId": 1,
-      "botChannelMemberId": 1,
-      "replyToMessageId": 1,
-      "botAuthor": {
-        "id": 1,
+      "replyToMessageId": 4,
+      "author": {
+        "id": 5,
+        "userId": null,
         "botId": 1,
         "channelId": 1,
         "bot": {
           "id": 1,
-          "name": "Assistant Bot"
+          "name": "Assistant Bot",
+          "isActive": true,
+          "createdAt": "2025-06-03T20:36:37.008Z",
+          "updatedAt": "2025-06-03T20:36:37.008Z"
         }
       },
       "replyToMessage": {
-        "id": 1,
-        "content": "Hey #1, how are you?",
-        "createdAt": "2025-06-02T10:04:00.000Z",
-        "updatedAt": "2025-06-02T10:04:00.000Z",
+        "id": 4,
+        "content": "Hey #1, how are you doing?",
+        "createdAt": "2025-06-03T20:41:10.729Z",
+        "updatedAt": "2025-06-03T20:41:10.729Z",
+        "channelMemberId": 2,
         "channelId": 1,
-        "channelMemberId": 1
+        "replyToMessageId": null
       }
     }
   ]
   ```
   
-  **Key Changes from Unified Migration:**
-  - This endpoint queries the unified Message table instead of separate bot_messages table
-  - Filters messages where `botChannelMemberId IS NOT NULL`
-  - Includes full `botAuthor` relationship with nested `bot` data
-  - `replyToMessage` includes both user and bot message references from unified table
+  **Key Changes from Unified ChannelMember Migration:**
+  - All members (users and bots) are now stored in the unified `ChannelMember` table
+  - Bot messages are identified by `author.botId IS NOT NULL`
+  - User messages are identified by `author.userId IS NOT NULL`
+  - Simplified relationship structure eliminates separate `BotChannelMember` table
   - Maintains backward compatibility with existing response structure
 }

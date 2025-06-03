@@ -35,12 +35,10 @@ export class BotMentionService {
     }
 
     // Check if the bot is a member of the channel
-    const botChannelMember = await this.prisma.botChannelMember.findUnique({
+    const botChannelMember = await this.prisma.channelMember.findFirst({
       where: {
-        botId_channelId: {
-          botId: bot.id,
-          channelId,
-        },
+        botId: bot.id,
+        channelId,
       },
     });
 

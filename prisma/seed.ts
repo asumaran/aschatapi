@@ -89,8 +89,8 @@ async function main() {
     },
   });
 
-  // Add bot to channels
-  await prisma.botChannelMember.upsert({
+  // Add bot to channels using unified ChannelMember
+  const botMembership1 = await prisma.channelMember.upsert({
     where: {
       botId_channelId: { botId: assistantBot.id, channelId: generalChannel.id },
     },
@@ -101,7 +101,7 @@ async function main() {
     },
   });
 
-  await prisma.botChannelMember.upsert({
+  const botMembership2 = await prisma.channelMember.upsert({
     where: {
       botId_channelId: { botId: assistantBot.id, channelId: randomChannel.id },
     },
@@ -126,6 +126,15 @@ async function main() {
       content: 'Thanks for the welcome!',
       channelId: generalChannel.id,
       channelMemberId: membership2.id,
+    },
+  });
+
+  // Create a bot message
+  await prisma.message.create({
+    data: {
+      content: 'Hello humans! I am here to assist you.',
+      channelId: generalChannel.id,
+      channelMemberId: botMembership1.id,
     },
   });
 

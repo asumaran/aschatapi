@@ -2,42 +2,62 @@
 
 ## Overview
 
-The ASChat API has been upgraded to use a **Unified Message System** that combines user messages and bot messages into a single table for improved performance and simplified queries.
+The ASChat API has been upgraded to use a **Unified Message and Membership System** that combines user messages and bot messages into a single table, and unifies user and bot channel membership through a single `ChannelMember` table for improved performance and simplified queries.
 
 ## Key Changes
 
 ### Before (Separate Tables)
 - `messages` table for user messages
 - `bot_messages` table for bot messages  
-- Required separate queries and client-side merging
+- `ChannelMember` table for user memberships
+- `BotChannelMember` table for bot memberships
+- Required separate queries and complex joins
 - Complex conversation reconstruction
 
-### After (Unified Table)
+### After (Unified Tables)
 - Single `Message` table for both user and bot messages
-- Optional `channelMemberId` for user messages
-- Optional `botChannelMemberId` for bot messages
+- Single `ChannelMember` table for both user and bot memberships
+- ChannelMember can reference either a `userId` OR a `botId`
 - Single query returns complete conversation chronology
-- Simplified client-side handling
+- Simplified client-side handling and relationships
 
 ## Database Schema
 
 ```sql
+model ChannelMember {
+  id        Int     @id @default(autoincrement())
+  
+  // Member can be either a User or a Bot (only one should be set)
+  user      User?   @relation(fields: [userId], references: [id])
+  userId    Int?
+  bot       Bot?    @relation(fields: [botId], references: [id])
+  botId     Int?
+  
+  channel   Channel @relation(fields: [channelId], references: [id])
+  channelId Int
+  messages  Message[]
+
+  // Ensure only one type of member is set and unique combinations
+  @@unique([userId, channelId])
+  @@unique([botId, channelId])
+}
+
 model Message {
   id                   Int      @id @default(autoincrement())
   content              String
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+  
+  // Author - unified through ChannelMember
+  channelMemberId      Int
   channelId            Int
-  channelMemberId      Int?     // For user messages
-  botChannelMemberId   Int?     // For bot messages
   replyToMessageId     Int?
   
   // Relations
-  channel              Channel           @relation(fields: [channelId], references: [id])
-  author               ChannelMember?    @relation("UserMessages", fields: [channelMemberId], references: [id])
-  botAuthor            BotChannelMember? @relation("BotMessages", fields: [botChannelMemberId], references: [id])
-  replyToMessage       Message?          @relation("MessageReplies", fields: [replyToMessageId], references: [id])
-  replies              Message[]         @relation("MessageReplies")
+  author               ChannelMember @relation(fields: [channelMemberId], references: [id])
+  channel              Channel       @relation(fields: [channelId], references: [id])
+  replyToMessage       Message?      @relation("MessageReplies", fields: [replyToMessageId], references: [id])
+  replies              Message[]     @relation("MessageReplies")
 }
 ```
 
@@ -53,8 +73,8 @@ Returns both user and bot messages in chronological order with type discriminati
   {
     "id": 1,
     "content": "Hello everyone!",
-    "createdAt": "2025-06-02T10:00:00.000Z",
-    "updatedAt": "2025-06-02T10:00:00.000Z",
+    "createdAt": "2025-06-03T20:36:37.015Z",
+    "updatedAt": "2025-06-03T20:36:37.015Z",
     "channelId": 1,
     "type": "user",
     "author": {
@@ -62,22 +82,22 @@ Returns both user and bot messages in chronological order with type discriminati
       "name": "Alfredo Sumaran",
       "email": "alfredo@mail.test"
     },
-    "channelMemberId": 1,
+    "channelMemberId": 2,
     "replyToMessageId": null
   },
   {
-    "id": 2,
-    "content": "#1 ¡Hola! 👋 ¿Cómo puedo ayudarte?",
-    "createdAt": "2025-06-02T10:05:00.000Z",
-    "updatedAt": "2025-06-02T10:05:00.000Z",
+    "id": 3,
+    "content": "Hello humans! I am here to assist you.",
+    "createdAt": "2025-06-03T20:36:37.017Z",
+    "updatedAt": "2025-06-03T20:36:37.017Z",
     "channelId": 1,
     "type": "bot",
     "author": {
       "id": 1,
       "name": "Assistant Bot"
     },
-    "botChannelMemberId": 1,
-    "replyToMessageId": 1
+    "channelMemberId": 5,
+    "replyToMessageId": null
   }
 ]
 ```
@@ -90,29 +110,34 @@ Returns only bot messages with full relationship data:
 ```json
 [
   {
-    "id": 2,
-    "content": "#1 ¡Hola! 👋 ¿Cómo puedo ayudarte?",
-    "createdAt": "2025-06-02T10:05:00.000Z",
-    "updatedAt": "2025-06-02T10:05:00.000Z",
+    "id": 5,
+    "content": "#1 ¿Has probado apagarlo y encenderlo de nuevo?",
+    "createdAt": "2025-06-03T20:41:10.736Z",
+    "updatedAt": "2025-06-03T20:41:10.736Z",
+    "channelMemberId": 5,
     "channelId": 1,
-    "botChannelMemberId": 1,
-    "replyToMessageId": 1,
-    "botAuthor": {
-      "id": 1,
+    "replyToMessageId": 4,
+    "author": {
+      "id": 5,
+      "userId": null,
       "botId": 1,
       "channelId": 1,
       "bot": {
         "id": 1,
-        "name": "Assistant Bot"
+        "name": "Assistant Bot",
+        "isActive": true,
+        "createdAt": "2025-06-03T20:36:37.008Z",
+        "updatedAt": "2025-06-03T20:36:37.008Z"
       }
     },
     "replyToMessage": {
-      "id": 1,
-      "content": "Hello everyone!",
-      "createdAt": "2025-06-02T10:00:00.000Z",
-      "updatedAt": "2025-06-02T10:00:00.000Z",
+      "id": 4,
+      "content": "Hey #1, how are you doing?",
+      "createdAt": "2025-06-03T20:41:10.729Z",
+      "updatedAt": "2025-06-03T20:41:10.729Z",
+      "channelMemberId": 2,
       "channelId": 1,
-      "channelMemberId": 1
+      "replyToMessageId": null
     }
   }
 ]

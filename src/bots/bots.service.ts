@@ -48,7 +48,7 @@ export class BotsService {
    * Add a bot to a channel
    */
   async addBotToChannel(botId: number, channelId: number) {
-    return await this.prisma.botChannelMember.create({
+    return await this.prisma.channelMember.create({
       data: {
         botId,
         channelId,
@@ -64,12 +64,21 @@ export class BotsService {
    * Remove a bot from a channel
    */
   async removeBotFromChannel(botId: number, channelId: number) {
-    return await this.prisma.botChannelMember.delete({
+    // Find the channel member first, then delete by id
+    const channelMember = await this.prisma.channelMember.findFirst({
       where: {
-        botId_channelId: {
-          botId,
-          channelId,
-        },
+        botId,
+        channelId,
+      },
+    });
+
+    if (!channelMember) {
+      throw new Error(`Bot ${botId} is not a member of channel ${channelId}`);
+    }
+
+    return await this.prisma.channelMember.delete({
+      where: {
+        id: channelMember.id,
       },
     });
   }
@@ -78,7 +87,7 @@ export class BotsService {
    * Create a bot message in response to a user mention
    */
   async createBotMessage(
-    botChannelMemberId: number,
+    channelMemberId: number,
     channelId: number,
     content: string,
     replyToMessageId?: number,
@@ -86,12 +95,12 @@ export class BotsService {
     return await this.prisma.message.create({
       data: {
         content,
-        botChannelMemberId,
+        channelMemberId,
         channelId,
         replyToMessageId,
       },
       include: {
-        botAuthor: {
+        author: {
           include: {
             bot: true,
           },
@@ -109,10 +118,12 @@ export class BotsService {
     return await this.prisma.message.findMany({
       where: {
         channelId,
-        botChannelMemberId: { not: null },
+        author: {
+          botId: { not: null },
+        },
       },
       include: {
-        botAuthor: {
+        author: {
           include: {
             bot: true,
           },
