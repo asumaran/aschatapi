@@ -23,6 +23,7 @@ export class ChannelMembershipsService {
       },
       include: {
         user: true,
+        bot: true,
       },
     });
   }
