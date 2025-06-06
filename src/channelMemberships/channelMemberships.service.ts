@@ -2,6 +2,31 @@ import { ChannelMember } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+// Types for frontend-expected membership format
+export interface UserMembership {
+  id: number;
+  type: 'user';
+  channelId: number;
+  member: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
+
+export interface BotMembership {
+  id: number;
+  type: 'bot';
+  channelId: number;
+  member: {
+    id: number;
+    name: string;
+    isActive: boolean;
+  };
+}
+
+export type ChannelMembership = UserMembership | BotMembership;
+
 @Injectable()
 export class ChannelMembershipsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -16,8 +41,8 @@ export class ChannelMembershipsService {
     });
   }
 
-  async getAllChannelMembers(channelId: number): Promise<ChannelMember[]> {
-    return this.prisma.channelMember.findMany({
+  async getAllChannelMembers(channelId: number): Promise<ChannelMembership[]> {
+    const channelMembers = await this.prisma.channelMember.findMany({
       where: {
         channelId: channelId,
       },
@@ -26,6 +51,43 @@ export class ChannelMembershipsService {
         bot: true,
       },
     });
+
+    // Transform the data to match frontend expectations
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+    return channelMembers.map((member): ChannelMembership => {
+      if (member.userId && member.user) {
+        // User membership
+        const user = member.user;
+        return {
+          id: member.id,
+          type: 'user' as const,
+          channelId: member.channelId,
+          member: {
+            id: user.id,
+            name: user.name || '',
+            email: user.email,
+          },
+        };
+      } else if (member.botId && member.bot) {
+        // Bot membership
+        const bot = member.bot;
+        return {
+          id: member.id,
+          type: 'bot' as const,
+          channelId: member.channelId,
+          member: {
+            id: bot.id,
+            name: bot.name,
+            isActive: bot.isActive,
+          },
+        };
+      } else {
+        throw new Error(
+          `Invalid channel member data: member ${member.id} has no valid user or bot association`,
+        );
+      }
+    });
+    /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
   }
 
   async create(data: Pick<ChannelMember, 'userId' | 'channelId'>) {
