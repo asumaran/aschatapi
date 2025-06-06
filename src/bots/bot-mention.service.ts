@@ -24,25 +24,23 @@ export class BotMentionService {
   ): Promise<void> {
     const mentionData = this.botsService.parseBotMention(messageContent);
 
-    if (!mentionData.isMention || !mentionData.mentionedBotId) {
+    if (!mentionData.isMention || !mentionData.mentionedChannelMemberId) {
       return;
     }
 
-    // Check if the mentioned ID corresponds to a bot
-    const bot = await this.botsService.findOne(mentionData.mentionedBotId);
-    if (!bot || !bot.isActive) {
+    // Try to find the bot by membership ID (the new way)
+    const botData = await this.botsService.findByMembershipId(
+      mentionData.mentionedChannelMemberId,
+    );
+
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+    if (!botData || !botData.bot?.isActive) {
       return;
     }
+    /* eslint-enable @typescript-eslint/no-unsafe-member-access */
 
-    // Check if the bot is a member of the channel
-    const botChannelMember = await this.prisma.channelMember.findFirst({
-      where: {
-        botId: bot.id,
-        channelId,
-      },
-    });
-
-    if (!botChannelMember) {
+    // Verify the bot is in the correct channel
+    if (botData.channelMember.channelId !== channelId) {
       return;
     }
 
@@ -52,7 +50,7 @@ export class BotMentionService {
 
     // Create bot response message
     await this.botsService.createBotMessage(
-      botChannelMember.id,
+      botData.channelMember.id,
       channelId,
       responseContent,
       messageId,

@@ -14,7 +14,7 @@ body:json {
   {
     "channelId": 1,
     "channelMemberId": 1,
-    "content": "Hey #1, how are you doing today?"
+    "content": "Hey #5, how are you doing today?"
   }
 }
 
@@ -22,7 +22,7 @@ tests {
   test("Should create message successfully", function() {
     expect(res.getStatus()).to.equal(201);
     expect(res.getBody()).to.have.property('id');
-    expect(res.getBody()).to.have.property('content', 'Hey #1, how are you doing today?');
+    expect(res.getBody()).to.have.property('content', 'Hey #5, how are you doing today?');
   });
 }
 
@@ -34,13 +34,15 @@ docs {
   2. Automatically trigger a bot response via the BotMentionService
   3. Store the bot response in the same unified Message table
   
-  **Message Format:** Use #{botId} to mention a bot
+  **Message Format:** Use #{channelMemberId} to mention a bot
   
-  **Example:** "Hey #1, how are you?" mentions bot with ID 1
+  **Example:** "Hey #5, how are you?" mentions the bot with channelMemberId 5
+  
+  **Important:** You must use the channelMemberId (membership ID) of the bot in the specific channel, not the botId.
   
   **Expected Flow:**
-  1. User sends: "Hey #1, how are you doing today?" (stored with channelMemberId)
-  2. Bot responds: "#1 ¡Hola! 👋 ¿Cómo puedo ayudarte?" (stored with botChannelMemberId)
+  1. User sends: "Hey #5, how are you doing today?" (stored with user's channelMemberId)
+  2. Bot responds: "#1 ¡Hola! 👋 ¿Cómo puedo ayudarte?" (stored with bot's channelMemberId and replyToMessageId)
   
   **Verification Steps:**
   1. Check unified messages: GET /messages/1 (shows both user and bot messages)
@@ -49,6 +51,11 @@ docs {
   **Unified Message System Benefits:**
   - Single query retrieves complete conversation flow
   - Maintains chronological order between user and bot messages
+  - Proper channel-specific bot identification via channelMemberId
   - Simplified client-side message handling
   - Better performance with reduced database queries
+  
+  **Channel Member IDs (for reference):**
+  - Channel 1: Bot has channelMemberId 5
+  - Channel 2: Bot has channelMemberId 6
 }

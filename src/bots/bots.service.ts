@@ -45,6 +45,31 @@ export class BotsService {
   }
 
   /**
+   * Get a bot by channel membership ID
+   */
+  async findByMembershipId(channelMemberId: number) {
+    const channelMember = await this.prisma.channelMember.findUnique({
+      where: { id: channelMemberId },
+      include: {
+        bot: true,
+        channel: true,
+      },
+    });
+
+    // Verify that this channel member is actually a bot
+    if (!channelMember || !channelMember.botId || !channelMember.bot) {
+      return null;
+    }
+
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+    return {
+      bot: channelMember.bot,
+      channelMember: channelMember,
+    };
+    /* eslint-enable @typescript-eslint/no-unsafe-assignment */
+  }
+
+  /**
    * Add a bot to a channel
    */
   async addBotToChannel(botId: number, channelId: number) {
@@ -158,11 +183,11 @@ export class BotsService {
   }
 
   /**
-   * Check if a message mentions any bot
+   * Check if a message mentions any bot by channel member ID
    */
   parseBotMention(content: string): {
     isMention: boolean;
-    mentionedBotId?: number;
+    mentionedChannelMemberId?: number;
   } {
     // Look for pattern #{number} in the message
     const mentionRegex = /#(\d+)/;
@@ -172,7 +197,7 @@ export class BotsService {
       const mentionedId = parseInt(match[1], 10);
       return {
         isMention: true,
-        mentionedBotId: mentionedId,
+        mentionedChannelMemberId: mentionedId,
       };
     }
 
