@@ -33,11 +33,9 @@ export class BotMentionService {
       mentionData.mentionedChannelMemberId,
     );
 
-    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
     if (!botData || !botData.bot?.isActive) {
       return;
     }
-    /* eslint-enable @typescript-eslint/no-unsafe-member-access */
 
     // Verify the bot is in the correct channel
     if (botData.channelMember.channelId !== channelId) {
