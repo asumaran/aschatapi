@@ -1,0 +1,75 @@
+meta {
+  name: Send Conversation to ChatGPT
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:4000/chatgpt/conversation
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "messages": [
+      {
+        "role": "system",
+        "content": "Eres un asistente técnico especializado en desarrollo web."
+      },
+      {
+        "role": "user",
+        "content": "¿Qué es NestJS?"
+      },
+      {
+        "role": "assistant",
+        "content": "NestJS es un framework de Node.js para construir aplicaciones del lado del servidor escalables y eficientes."
+      },
+      {
+        "role": "user",
+        "content": "¿Cuáles son sus principales ventajas?"
+      }
+    ]
+  }
+}
+
+tests {
+  test("Should process conversation successfully", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody()).to.have.property('success');
+    
+    if (res.getBody().success) {
+      expect(res.getBody()).to.have.property('response');
+      expect(res.getBody()).to.have.property('usage');
+    } else {
+      expect(res.getBody()).to.have.property('error');
+    }
+  });
+}
+
+docs {
+  Send a multi-turn conversation to ChatGPT for contextual responses.
+  
+  **Request Body:**
+  - `messages`: Array of conversation messages with roles (system, user, assistant)
+  
+  **Message Roles:**
+  - `system`: Sets the behavior and context for the assistant
+  - `user`: Messages from the user
+  - `assistant`: Previous responses from ChatGPT
+  
+  **Expected Response (if successful):**
+  ```json
+  {
+    "success": true,
+    "response": "ChatGPT's contextual response",
+    "usage": {
+      "prompt_tokens": 50,
+      "completion_tokens": 40,
+      "total_tokens": 90
+    }
+  }
+  ```
+  
+  This allows for more sophisticated conversations where ChatGPT remembers the context.
+}

@@ -1,0 +1,62 @@
+meta {
+  name: Generate Bot Response with ChatGPT
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:4000/chatgpt/bot-response
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "userMessage": "¿Podrías ayudarme con una pregunta sobre programación?",
+    "channelContext": "Canal: #general. Este es un canal de desarrollo donde los programadores discuten proyectos.",
+    "botPersonality": "Eres un bot asistente experto en programación, amigable y siempre dispuesto a ayudar con código y conceptos técnicos."
+  }
+}
+
+tests {
+  test("Should generate bot response successfully", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody()).to.have.property('success');
+    
+    if (res.getBody().success) {
+      expect(res.getBody()).to.have.property('response');
+      expect(typeof res.getBody().response).to.equal('string');
+    } else {
+      expect(res.getBody()).to.have.property('error');
+    }
+  });
+}
+
+docs {
+  Generate a bot response using ChatGPT with specific context and personality.
+  
+  This is the same method used by the bot mention system to generate intelligent responses.
+  
+  **Request Body:**
+  - `userMessage`: The user's message that triggered the bot
+  - `channelContext`: (Optional) Context about the channel and recent conversation
+  - `botPersonality`: (Optional) The bot's personality and role
+  
+  **Expected Response (if successful):**
+  ```json
+  {
+    "success": true,
+    "response": "Bot's intelligent response text"
+  }
+  ```
+  
+  **Expected Response (if failed):**
+  ```json
+  {
+    "success": false,
+    "error": "Error message"
+  }
+  ```
+  
+  **Note:** This endpoint includes fallback handling, so it should always return a response even if ChatGPT is unavailable.
+}

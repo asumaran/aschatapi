@@ -1,0 +1,37 @@
+meta {
+  name: Check ChatGPT Status
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:4000/chatgpt/status
+  body: none
+  auth: none
+}
+
+tests {
+  test("Should return status successfully", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.have.property('available');
+    expect(res.getBody()).to.have.property('message');
+  });
+}
+
+docs {
+  Check if the ChatGPT service is available and properly configured.
+  
+  This endpoint will return:
+  - `available: true` if OPENAI_API_KEY is configured
+  - `available: false` if OPENAI_API_KEY is missing
+  
+  **Expected Response:**
+  ```json
+  {
+    "available": true/false,
+    "message": "Status message"
+  }
+  ```
+  
+  **Note:** You need to set the OPENAI_API_KEY environment variable for the service to work.
+}

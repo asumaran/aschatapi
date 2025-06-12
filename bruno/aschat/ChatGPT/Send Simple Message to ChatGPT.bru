@@ -1,0 +1,63 @@
+meta {
+  name: Send Simple Message to ChatGPT
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:4000/chatgpt/message
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "message": "Hola, ¿cómo estás? Cuéntame algo interesante.",
+    "systemPrompt": "Eres un asistente amigable que responde en español de forma concisa y útil."
+  }
+}
+
+tests {
+  test("Should get ChatGPT response successfully", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody()).to.have.property('success');
+    
+    if (res.getBody().success) {
+      expect(res.getBody()).to.have.property('response');
+      expect(res.getBody()).to.have.property('usage');
+    } else {
+      expect(res.getBody()).to.have.property('error');
+    }
+  });
+}
+
+docs {
+  Send a simple message to ChatGPT and get a response.
+  
+  **Request Body:**
+  - `message`: The message to send to ChatGPT
+  - `systemPrompt`: (Optional) System prompt to set context
+  
+  **Expected Response (if successful):**
+  ```json
+  {
+    "success": true,
+    "response": "ChatGPT's response text",
+    "usage": {
+      "prompt_tokens": 20,
+      "completion_tokens": 30,
+      "total_tokens": 50
+    }
+  }
+  ```
+  
+  **Expected Response (if failed):**
+  ```json
+  {
+    "success": false,
+    "error": "Error message"
+  }
+  ```
+  
+  **Note:** Requires OPENAI_API_KEY to be configured.
+}

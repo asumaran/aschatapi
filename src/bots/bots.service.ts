@@ -61,12 +61,10 @@ export class BotsService {
       return null;
     }
 
-    /* eslint-disable @typescript-eslint/no-unsafe-assignment */
     return {
       bot: channelMember.bot,
       channelMember: channelMember,
     };
-    /* eslint-enable @typescript-eslint/no-unsafe-assignment */
   }
 
   /**

@@ -1,0 +1,30 @@
+name: ChatGPT API Tests
+docs: |
+  Collection of tests for the ChatGPT integration service.
+  
+  This collection tests the ChatGPT service functionality including:
+  - Service availability check
+  - Simple message sending
+  - Conversation handling
+  - Bot response generation
+  - Integration with the bot mention system
+  
+  **Setup Requirements:**
+  1. Set the OPENAI_API_KEY environment variable
+  2. Make sure the server is running on localhost:4000
+  3. Ensure the database has test data (bots and channels)
+  
+  **Environment Variable:**
+  Add to your .env file:
+  ```
+  OPENAI_API_KEY=your_openai_api_key_here
+  ```
+  
+  **Test Order Recommendation:**
+  1. Check ChatGPT Status - Verify service availability
+  2. Send Simple Message - Test basic functionality
+  3. Generate Bot Response - Test bot-specific responses
+  4. Send Conversation - Test multi-turn conversations
+  5. Test Bot Mention - Test complete integration
+  
+  **Note:** Tests 2-4 will fail if OPENAI_API_KEY is not configured, but the bot mention test should still work with fallback responses.

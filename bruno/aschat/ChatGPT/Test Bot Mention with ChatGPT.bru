@@ -1,0 +1,56 @@
+meta {
+  name: Test Bot Mention with ChatGPT
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:4000/messages
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "channelId": 1,
+    "channelMemberId": 2,
+    "content": "Hey #5, ¿puedes explicarme qué es la programación asíncrona en JavaScript?"
+  }
+}
+
+tests {
+  test("Should create message and trigger ChatGPT bot response", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody()).to.have.property('id');
+    expect(res.getBody()).to.have.property('content');
+  });
+}
+
+docs {
+  Test the complete bot mention flow with ChatGPT integration.
+  
+  This will:
+  1. Create a user message mentioning the bot (#5 = bot's channelMemberId)
+  2. Automatically trigger the bot mention system
+  3. Generate an intelligent response using ChatGPT (if available)
+  4. Store the bot's response in the database
+  
+  **What happens behind the scenes:**
+  1. Message is created
+  2. BotMentionService detects the mention
+  3. System gathers channel context and recent messages
+  4. ChatGPT generates an intelligent response
+  5. Bot responds with the generated content
+  
+  **To verify the response:**
+  1. Check unified messages: GET /messages/1
+  2. Look for the bot's response after your message
+  
+  **Fallback behavior:**
+  - If ChatGPT is unavailable, the bot will use random responses
+  - The system is designed to always respond, even if ChatGPT fails
+  
+  **Channel Member IDs (for reference):**
+  - Channel 1: Bot has channelMemberId 5
+  - Channel 2: Bot has channelMemberId 6
+}

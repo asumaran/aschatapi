@@ -24,7 +24,6 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Get('profile')
   getProfile(@Request() req) {
-    console.log('test endpoint with guard');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
     return req.user;
   }

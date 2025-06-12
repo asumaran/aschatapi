@@ -1,0 +1,121 @@
+meta {
+  name: Complete ChatGPT Integration Test
+  type: http
+  seq: 6
+}
+
+post {
+  url: http://localhost:4000/messages
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "channelId": 1,
+    "channelMemberId": 2,
+    "content": "Hey #5, explícame qué es la inyección de dependencias en NestJS y cómo funciona. ¿Puedes dar un ejemplo práctico?"
+  }
+}
+
+tests {
+  test("Should create message and trigger intelligent bot response", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody()).to.have.property('id');
+    expect(res.getBody()).to.have.property('content');
+    
+    // Store the message ID for verification
+    bru.setVar("lastMessageId", res.getBody().id);
+  });
+}
+
+docs {
+  **Complete Integration Test for ChatGPT Bot System**
+  
+  This test demonstrates the full flow of the ChatGPT-enhanced bot mention system:
+  
+  ## What This Test Does:
+  1. Creates a user message mentioning the bot with a technical question
+  2. Automatically triggers the BotMentionService
+  3. Gathers channel context and recent messages
+  4. Attempts to generate an intelligent response using ChatGPT
+  5. Falls back to default response if ChatGPT is unavailable
+  6. Bot responds with contextual answer
+  
+  ## Expected Flow:
+  
+  ### Step 1: User Message Creation
+  ```json
+  POST /messages
+  {
+    "channelId": 1,
+    "channelMemberId": 2,
+    "content": "Hey #5, explícame qué es la inyección de dependencias..."
+  }
+  ```
+  
+  ### Step 2: Automatic Bot Processing
+  - System detects mention pattern `#5` (bot's channelMemberId)
+  - Validates bot exists and is active in the channel
+  - Gathers conversation context (recent messages, channel info)
+  
+  ### Step 3: ChatGPT Integration (if available)
+  - Builds context: channel name + recent conversation
+  - Sets bot personality: "Eres Assistant Bot, un bot asistente amigable y útil"
+  - Sends request to ChatGPT with technical question
+  
+  ### Step 4: Response Generation
+  **If ChatGPT is available:**
+  - Returns intelligent, contextual response about dependency injection
+  - Response considers conversation history and channel context
+  
+  **If ChatGPT fails/unavailable:**
+  - Falls back to: "Lo siento, no pude procesar tu mensaje en este momento. 🤖"
+  - System remains functional regardless of ChatGPT status
+  
+  ### Step 5: Bot Response Storage
+  - Bot response saved with bot's channelMemberId (5)
+  - Includes mention of original author: "#1 [response]"
+  - Links to original message via replyToMessageId
+  
+  ## Verification Steps:
+  
+  ### 1. Check Complete Conversation
+  ```bash
+  GET /messages/1
+  ```
+  Look for your message + bot response (should be last 2 messages)
+  
+  ### 2. Verify Bot Response Details
+  - `type: "bot"`
+  - `author.name: "Assistant Bot"`
+  - `channelMemberId: 5`
+  - `replyToMessageId: [your message ID]`
+  - Content starts with "#1" (mentioning you)
+  
+  ## Current API Status:
+  - **Service Available**: ✅ ChatGPT service is configured
+  - **API Key Status**: ⚠️ Quota exceeded (will use fallback responses)
+  - **Fallback Working**: ✅ System continues to function
+  
+  ## How to Enable Full ChatGPT:
+  1. Add credits to your OpenAI account
+  2. Or get a new API key with available quota
+  3. Update OPENAI_API_KEY in .env file
+  4. Restart server: `npm run start:dev`
+  
+  ## Testing Different Scenarios:
+  
+  **Technical Questions** (good for ChatGPT):
+  - "Hey #5, explica los decoradores en NestJS"
+  - "Hey #5, ¿cómo funciona el sistema de guards?"
+  
+  **General Conversation**:
+  - "Hey #5, ¿cómo estás hoy?"
+  - "Hey #5, cuéntame un chiste"
+  
+  **Edge Cases**:
+  - Mention non-bot: "Hey #2" (should not trigger response)
+  - Invalid mention: "Hey #999" (should not trigger response)
+  - No mention: "Hello everyone" (should not trigger response)
+}

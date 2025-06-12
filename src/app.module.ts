@@ -8,6 +8,7 @@ import { ChannelMembershipsModule } from './channelMemberships/channelMembership
 import { MessagesModule } from './messages/messages.module';
 import { AuthModule } from './auth/auth.module';
 import { BotsModule } from './bots/bots.module';
+import { ChatGPTModule } from './chatgpt/chatgpt.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { BotsModule } from './bots/bots.module';
     MessagesModule,
     AuthModule,
     BotsModule,
+    ChatGPTModule,
   ],
   controllers: [AppController],
   providers: [AppService],

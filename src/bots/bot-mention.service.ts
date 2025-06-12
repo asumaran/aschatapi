@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { BotsService } from './bots.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { ChatGPTService, ChatGPTMessage } from '../chatgpt/chatgpt.service';
 
 @Injectable()
 export class BotMentionService {
   constructor(
     private readonly botsService: BotsService,
     private readonly prisma: PrismaService,
+    private readonly chatgptService: ChatGPTService,
   ) {}
 
   /**
@@ -42,9 +44,35 @@ export class BotMentionService {
       return;
     }
 
-    // Generate response content mentioning the original author
-    const randomResponse = this.botsService.generateRandomResponse();
-    const responseContent = `#${authorUserId} ${randomResponse}`;
+    // Generate response content using ChatGPT with full conversation context
+    let responseText: string;
+
+    try {
+      // Get channel context
+      const channel = await this.prisma.channel.findUnique({
+        where: { id: channelId },
+        select: { name: true },
+      });
+
+      // Use ChatGPT with full conversation context if available
+      if (this.chatgptService.isAvailable()) {
+        responseText = await this.generateContextualResponse(
+          messageContent,
+          channelId,
+          botData.bot.name,
+          channel?.name || 'Canal',
+        );
+      } else {
+        // Fallback to random response
+        responseText = this.botsService.generateRandomResponse();
+      }
+    } catch (error) {
+      console.error('Error generating ChatGPT response:', error);
+      // Fallback to random response if ChatGPT fails
+      responseText = this.botsService.generateRandomResponse();
+    }
+
+    const responseContent = `#${authorUserId} ${responseText}`;
 
     // Create bot response message
     await this.botsService.createBotMessage(
@@ -53,6 +81,121 @@ export class BotMentionService {
       responseContent,
       messageId,
     );
+  }
+
+  /**
+   * Generate a contextual response using full conversation history
+   * @param userMessage - The current user message
+   * @param channelId - The channel ID
+   * @param botName - The bot's name
+   * @param channelName - The channel name
+   * @returns Promise<string> - The bot's contextual response
+   */
+  private async generateContextualResponse(
+    userMessage: string,
+    channelId: number,
+    botName: string,
+    channelName: string,
+  ): Promise<string> {
+    try {
+      // Get conversation history (last 15 messages to have good context)
+      const conversationHistory = await this.prisma.message.findMany({
+        where: { channelId },
+        include: {
+          author: {
+            include: { user: true, bot: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 15,
+      });
+
+      // Build full conversation for ChatGPT
+      const conversation = this.buildConversationMessages(
+        conversationHistory.map((msg) => ({
+          content: msg.content,
+          author: {
+            user: msg.author.user
+              ? { name: msg.author.user.name || 'Usuario' }
+              : null,
+            bot: msg.author.bot ? { name: msg.author.bot.name } : null,
+          },
+        })),
+        userMessage,
+        botName,
+        channelName,
+      );
+
+      // Use sendConversation for full contextual understanding
+      const response = await this.chatgptService.sendConversation(conversation);
+      return response.message;
+    } catch (error) {
+      console.error('Error generating contextual response:', error);
+      // Fallback to basic response
+      return this.botsService.generateRandomResponse();
+    }
+  }
+
+  /**
+   * Build conversation messages for ChatGPT
+   * @param messageHistory - Array of messages from database
+   * @param currentMessage - The current user message
+   * @param botName - The bot's name
+   * @param channelName - The channel name
+   * @returns Array of ChatGPT messages
+   */
+  private buildConversationMessages(
+    messageHistory: Array<{
+      content: string;
+      author: {
+        user?: { name: string } | null;
+        bot?: { name: string } | null;
+      };
+    }>,
+    currentMessage: string,
+    botName: string,
+    channelName: string,
+  ): ChatGPTMessage[] {
+    const messages: ChatGPTMessage[] = [];
+
+    // Add system prompt with context
+    messages.push({
+      role: 'system',
+      content: `Eres ${botName}, un bot asistente inteligente y útil en el canal "${channelName}". 
+      
+Características de tu personalidad:
+- Respondes en español de forma amigable y útil
+- Eres experto en tecnología, especialmente en desarrollo web y programación
+- Mantienes respuestas concisas pero informativas (máximo 3-4 oraciones)
+- Usas emojis ocasionalmente para ser más expresivo
+- Recuerdas y referencias conversaciones anteriores cuando sea relevante
+- Si no sabes algo, lo admites honestamente
+
+Contexto: Estás en una conversación de chat donde puedes ver el historial completo. Usa esta información para dar respuestas más contextuales y relevantes.`,
+    });
+
+    // Add conversation history in chronological order
+    const sortedHistory = messageHistory.reverse(); // Reverse to get chronological order
+
+    for (const msg of sortedHistory) {
+      const authorName: string =
+        msg.author.user?.name || msg.author.bot?.name || 'Usuario';
+      const isBot = !!msg.author.bot;
+
+      // Add message to conversation
+      messages.push({
+        role: isBot ? 'assistant' : 'user',
+        content: isBot ? msg.content : `${authorName}: ${msg.content}`,
+      });
+    }
+
+    // Add current message
+    messages.push({
+      role: 'user',
+      content: currentMessage,
+    });
+
+    return messages;
   }
 
   /**
