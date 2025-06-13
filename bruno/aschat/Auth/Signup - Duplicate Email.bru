@@ -1,0 +1,26 @@
+meta {
+  name: Signup - Duplicate Email
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/auth/signup
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Another User",
+    "email": "juan.perez@example.com",
+    "password": "password123"
+  }
+}
+
+tests {
+  test("should reject duplicate email", function() {
+    expect(res.status).to.equal(409);
+    expect(res.body.message).to.contain("User with this email already exists");
+  });
+}

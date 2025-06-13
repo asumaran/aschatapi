@@ -1,0 +1,24 @@
+meta {
+  name: Signup - Missing Fields
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/auth/signup
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "incomplete@example.com"
+  }
+}
+
+tests {
+  test("should reject missing fields", function() {
+    expect(res.status).to.equal(400);
+    expect(res.body.message).to.contain("Name, email, and password are required");
+  });
+}

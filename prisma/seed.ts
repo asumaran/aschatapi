@@ -1,29 +1,41 @@
 import { PrismaClient } from '@prisma/client';
-import * as crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
+
+async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 10;
+  return await bcrypt.hash(password, saltRounds);
+}
 
 async function main() {
   console.log('Seeding database...');
 
+  // Hash the default password
+  const defaultPassword = await hashPassword('password');
+
   // Create users
   const user1 = await prisma.user.upsert({
     where: { email: 'alfredo@mail.test' },
-    update: {},
+    update: {
+      password: defaultPassword,
+    },
     create: {
       email: 'alfredo@mail.test',
       name: 'Alfredo Sumaran',
-      password: crypto.createHash('md5').update('password').digest('hex'),
+      password: defaultPassword,
     },
   });
 
   const user2 = await prisma.user.upsert({
     where: { email: 'jane@mail.test' },
-    update: {},
+    update: {
+      password: defaultPassword,
+    },
     create: {
       email: 'jane@mail.test',
       name: 'Jane Doe',
-      password: crypto.createHash('md5').update('password').digest('hex'),
+      password: defaultPassword,
     },
   });
 
@@ -101,7 +113,7 @@ async function main() {
     },
   });
 
-  const botMembership2 = await prisma.channelMember.upsert({
+  await prisma.channelMember.upsert({
     where: {
       botId_channelId: { botId: assistantBot.id, channelId: randomChannel.id },
     },

@@ -1,0 +1,30 @@
+meta {
+  name: Signup user
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/auth/signup
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Juan Pérez",
+    "email": "juan.perez@example.com",
+    "password": "miPassword123"
+  }
+}
+
+tests {
+  test("should register user successfully", function() {
+    expect(res.status).to.equal(201);
+    expect(res.body.message).to.equal("User registered successfully");
+    expect(res.body.user).to.have.property("id");
+    expect(res.body.user).to.have.property("name");
+    expect(res.body.user).to.have.property("email");
+    expect(res.body.user).to.not.have.property("password");
+  });
+}
