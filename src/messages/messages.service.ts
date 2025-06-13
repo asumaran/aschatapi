@@ -119,17 +119,13 @@ export class MessagesService {
     });
 
     if (channelMember && channelMember.userId) {
-      // Process the message for bot mentions (async, don't wait)
-      this.botMentionService
-        .processMessageForBotMentions(
-          data.content,
-          data.channelId,
-          channelMember.userId,
-          message.id,
-        )
-        .catch((error) => {
-          console.error('Error processing bot mentions:', error);
-        });
+      // Process the message for bot mentions (fire-and-forget, no await needed)
+      this.botMentionService.processMessageForBotMentions(
+        data.content,
+        data.channelId,
+        channelMember.userId,
+        message.id,
+      );
     }
 
     return message;

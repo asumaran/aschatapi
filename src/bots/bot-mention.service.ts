@@ -13,17 +13,47 @@ export class BotMentionService {
 
   /**
    * Process a message and respond if a bot is mentioned
+   * Each mention is processed independently in background
    * @param messageContent - The content of the message
    * @param channelId - The channel where the message was sent
    * @param authorUserId - The ID of the user who sent the message
    * @param messageId - The ID of the original message
    */
-  async processMessageForBotMentions(
+  processMessageForBotMentions(
+    messageContent: string,
+    channelId: number,
+    authorUserId: number,
+    messageId: number,
+  ): void {
+    // Process mention in background without blocking
+    this.processBotMention(
+      messageContent,
+      channelId,
+      authorUserId,
+      messageId,
+    ).catch((error) => {
+      console.error(
+        `Error processing bot mention for message ${messageId}:`,
+        error,
+      );
+    });
+  }
+
+  /**
+   * Internal method to process bot mention in background
+   * @param messageContent - The content of the message
+   * @param channelId - The channel where the message was sent
+   * @param authorUserId - The ID of the user who sent the message
+   * @param messageId - The ID of the original message
+   */
+  private async processBotMention(
     messageContent: string,
     channelId: number,
     authorUserId: number,
     messageId: number,
   ): Promise<void> {
+    console.log(`Starting bot mention processing for message ${messageId}`);
+
     const mentionData = this.botsService.parseBotMention(messageContent);
 
     if (!mentionData.isMention || !mentionData.mentionedChannelMemberId) {
@@ -81,6 +111,8 @@ export class BotMentionService {
       responseContent,
       messageId,
     );
+
+    console.log(`Bot mention processing completed for message ${messageId}`);
   }
 
   /**
@@ -98,42 +130,72 @@ export class BotMentionService {
     channelName: string,
   ): Promise<string> {
     try {
-      // Get conversation history (last 15 messages to have good context)
-      const conversationHistory = await this.prisma.message.findMany({
-        where: { channelId },
-        include: {
-          author: {
-            include: { user: true, bot: true },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 15,
+      // Set timeout for ChatGPT operations (15 seconds max)
+      const timeoutPromise = new Promise<string>((_, reject) => {
+        setTimeout(() => reject(new Error('ChatGPT timeout')), 15000);
       });
 
-      // Build full conversation for ChatGPT
-      const conversation = this.buildConversationMessages(
-        conversationHistory.map((msg) => ({
-          content: msg.content,
-          author: {
-            user: msg.author.user
-              ? { name: msg.author.user.name || 'Usuario' }
-              : null,
-            bot: msg.author.bot ? { name: msg.author.bot.name } : null,
-          },
-        })),
+      const chatGptPromise = this.generateChatGPTResponse(
         userMessage,
+        channelId,
         botName,
         channelName,
       );
 
-      // Use sendConversation for full contextual understanding
-      const response = await this.chatgptService.sendConversation(conversation);
-      return response.message;
+      // Race between ChatGPT response and timeout
+      return await Promise.race([chatGptPromise, timeoutPromise]);
     } catch (error) {
       console.error('Error generating contextual response:', error);
       // Fallback to basic response
       return this.botsService.generateRandomResponse();
     }
+  }
+
+  /**
+   * Generate ChatGPT response with conversation context
+   * @param userMessage - The current user message
+   * @param channelId - The channel ID
+   * @param botName - The bot's name
+   * @param channelName - The channel name
+   * @returns Promise<string> - The ChatGPT response
+   */
+  private async generateChatGPTResponse(
+    userMessage: string,
+    channelId: number,
+    botName: string,
+    channelName: string,
+  ): Promise<string> {
+    // Get conversation history (last 15 messages to have good context)
+    const conversationHistory = await this.prisma.message.findMany({
+      where: { channelId },
+      include: {
+        author: {
+          include: { user: true, bot: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 15,
+    });
+
+    // Build full conversation for ChatGPT
+    const conversation = this.buildConversationMessages(
+      conversationHistory.map((msg) => ({
+        content: msg.content,
+        author: {
+          user: msg.author.user
+            ? { name: msg.author.user.name || 'Usuario' }
+            : null,
+          bot: msg.author.bot ? { name: msg.author.bot.name } : null,
+        },
+      })),
+      userMessage,
+      botName,
+      channelName,
+    );
+
+    // Use sendConversation for full contextual understanding
+    const response = await this.chatgptService.sendConversation(conversation);
+    return response.message;
   }
 
   /**
