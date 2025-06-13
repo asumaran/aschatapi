@@ -93,13 +93,16 @@ export class BotMentionService {
           channel?.name || 'Canal',
         );
       } else {
-        // Fallback to random response
-        responseText = this.botsService.generateRandomResponse();
+        // ChatGPT not available, skip response
+        console.log(
+          `ChatGPT not available for message ${messageId}, skipping bot response`,
+        );
+        return;
       }
     } catch (error) {
       console.error('Error generating ChatGPT response:', error);
-      // Fallback to random response if ChatGPT fails
-      responseText = this.botsService.generateRandomResponse();
+      // ChatGPT failed, skip response
+      return;
     }
 
     const responseContent = `#${authorUserId} ${responseText}`;
@@ -129,26 +132,20 @@ export class BotMentionService {
     botName: string,
     channelName: string,
   ): Promise<string> {
-    try {
-      // Set timeout for ChatGPT operations (15 seconds max)
-      const timeoutPromise = new Promise<string>((_, reject) => {
-        setTimeout(() => reject(new Error('ChatGPT timeout')), 15000);
-      });
+    // Set timeout for ChatGPT operations (15 seconds max)
+    const timeoutPromise = new Promise<string>((_, reject) => {
+      setTimeout(() => reject(new Error('ChatGPT timeout')), 15000);
+    });
 
-      const chatGptPromise = this.generateChatGPTResponse(
-        userMessage,
-        channelId,
-        botName,
-        channelName,
-      );
+    const chatGptPromise = this.generateChatGPTResponse(
+      userMessage,
+      channelId,
+      botName,
+      channelName,
+    );
 
-      // Race between ChatGPT response and timeout
-      return await Promise.race([chatGptPromise, timeoutPromise]);
-    } catch (error) {
-      console.error('Error generating contextual response:', error);
-      // Fallback to basic response
-      return this.botsService.generateRandomResponse();
-    }
+    // Race between ChatGPT response and timeout
+    return await Promise.race([chatGptPromise, timeoutPromise]);
   }
 
   /**

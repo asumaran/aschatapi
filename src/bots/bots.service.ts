@@ -160,27 +160,6 @@ export class BotsService {
   }
 
   /**
-   * Generate random response content for bot
-   */
-  generateRandomResponse(): string {
-    const responses = [
-      '¡Hola! 👋 ¿Cómo puedo ayudarte?',
-      '¡Interesante! Cuéntame más sobre eso.',
-      '¿Sabías que soy un bot? 🤖',
-      '¡Genial! Me gusta esta conversación.',
-      'Hmm, déjame pensar en eso... 🤔',
-      '¡Excelente pregunta! No tengo idea. 😅',
-      '¿Has probado apagarlo y encenderlo de nuevo?',
-      'En mis cálculos, hay un 73.6% de probabilidad de que tengas razón.',
-      '¡Error 404: Respuesta inteligente no encontrada! 😄',
-      'Beep boop beep! Traducido: "¡Hola humano!"',
-    ];
-
-    const randomIndex = Math.floor(Math.random() * responses.length);
-    return responses[randomIndex];
-  }
-
-  /**
    * Check if a message mentions any bot by channel member ID
    */
   parseBotMention(content: string): {
