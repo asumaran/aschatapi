@@ -14,7 +14,13 @@ body:json {
   {
     "channelId": 1,
     "channelMemberId": 2,
-    "content": "Hey #5, explícame qué es la inyección de dependencias en NestJS y cómo funciona. ¿Puedes dar un ejemplo práctico?"
+    "content": "Hey @Assistant Bot, explícame qué es la inyección de dependencias en NestJS y cómo funciona. ¿Puedes dar un ejemplo práctico?",
+    "mentions": [
+      {
+        "memberId": 5,
+        "name": "Assistant Bot"
+      }
+    ]
   }
 }
 
@@ -50,13 +56,20 @@ docs {
   {
     "channelId": 1,
     "channelMemberId": 2,
-    "content": "Hey #5, explícame qué es la inyección de dependencias..."
+    "content": "Hey @Assistant Bot, explícame qué es la inyección...",
+    "mentions": [
+      {
+        "memberId": 5,
+        "name": "Assistant Bot"
+      }
+    ]
   }
   ```
   
   ### Step 2: Automatic Bot Processing
-  - System detects mention pattern `#5` (bot's channelMemberId)
+  - System detects explicit mention (memberId: 5, name: "Assistant Bot")
   - Validates bot exists and is active in the channel
+  - Validates bot name matches the provided mention name
   - Gathers conversation context (recent messages, channel info)
   
   ### Step 3: ChatGPT Integration (if available)

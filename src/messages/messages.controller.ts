@@ -9,20 +9,14 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { MessagesService, UnifiedMessage } from './messages.service';
-import { Message } from '@prisma/client';
+import { CreateMessageDto } from './dto/create-message.dto';
 
 @Controller('messages')
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
   @Post()
-  create(
-    @Body()
-    createMessageDto: Pick<
-      Message,
-      'channelId' | 'channelMemberId' | 'content'
-    >,
-  ) {
+  create(@Body() createMessageDto: CreateMessageDto) {
     return this.messagesService.create(createMessageDto);
   }
 

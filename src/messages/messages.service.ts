@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BotMentionService } from '../bots/bot-mention.service';
 import { Message } from '@prisma/client';
+import { CreateMessageDto } from './dto/create-message.dto';
 
 export interface UnifiedMessage {
   id: number;
@@ -102,15 +103,19 @@ export class MessagesService {
     /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
   }
 
-  async create(
-    data: Pick<Message, 'channelId' | 'channelMemberId' | 'content'>,
-  ): Promise<Message> {
+  async create(data: CreateMessageDto): Promise<Message> {
     // Validate that channelMemberId is provided for user messages
     if (!data.channelMemberId) {
       throw new Error('channelMemberId is required for user messages');
     }
 
-    const message = await this.prisma.message.create({ data });
+    const message = await this.prisma.message.create({
+      data: {
+        content: data.content,
+        channelId: data.channelId,
+        channelMemberId: data.channelMemberId,
+      },
+    });
 
     // Get the user ID from the channel member to process bot mentions
     const channelMember = await this.prisma.channelMember.findUnique({
@@ -118,13 +123,19 @@ export class MessagesService {
       select: { userId: true },
     });
 
-    if (channelMember && channelMember.userId) {
-      // Process the message for bot mentions (fire-and-forget, no await needed)
-      this.botMentionService.processMessageForBotMentions(
+    if (
+      channelMember &&
+      channelMember.userId &&
+      data.mentions &&
+      data.mentions.length > 0
+    ) {
+      // Process explicit bot mentions (fire-and-forget, no await needed)
+      this.botMentionService.processExplicitMentions(
         data.content,
         data.channelId,
         channelMember.userId,
         message.id,
+        data.mentions,
       );
     }
 

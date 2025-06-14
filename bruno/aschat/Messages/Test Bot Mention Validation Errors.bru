@@ -1,0 +1,51 @@
+meta {
+  name: Test Bot Mention Validation Errors
+  type: http
+  seq: 9
+}
+
+post {
+  url: http://localhost:4000/messages
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "channelId": 1,
+    "channelMemberId": 2,
+    "content": "Hey @WrongBot, this should not trigger a response",
+    "mentions": [
+      {
+        "memberId": 5,
+        "name": "WrongBot"
+      }
+    ]
+  }
+}
+
+tests {
+  test("Should create message but not trigger bot response for wrong name", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody()).to.have.property('id');
+    expect(res.getBody()).to.have.property('content');
+  });
+}
+
+docs {
+  **Test Bot Mention Validation Errors**
+  
+  This test verifies that the system properly validates bot mentions:
+  - The memberId (5) exists and corresponds to "Assistant Bot"
+  - But the name provided is "WrongBot" 
+  - The system should detect this mismatch and NOT trigger a bot response
+  
+  This ensures that clients can't trigger bot responses by providing incorrect data.
+  
+  ## Expected Behavior:
+  1. Message is created successfully
+  2. System finds bot with memberId 5
+  3. System detects name mismatch ("WrongBot" != "Assistant Bot")
+  4. No bot response is generated
+  5. Check console logs for validation error message
+}

@@ -1,0 +1,64 @@
+meta {
+  name: Test New Bot Mention Format
+  type: http
+  seq: 7
+}
+
+post {
+  url: http://localhost:4000/messages
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "channelId": 1,
+    "channelMemberId": 2,
+    "content": "Hey @Assistant Bot, ¿puedes explicarme qué es la inyección de dependencias en NestJS?",
+    "mentions": [
+      {
+        "memberId": 5,
+        "name": "Assistant Bot"
+      }
+    ]
+  }
+}
+
+tests {
+  test("Should create message and trigger bot response with explicit mentions", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody()).to.have.property('id');
+    expect(res.getBody()).to.have.property('content');
+    expect(res.getBody().content).to.include("@Assistant Bot");
+  });
+}
+
+docs {
+  **Test New Explicit Bot Mention Format**
+  
+  This test demonstrates the new explicit bot mention system where mentions are sent as data in the request instead of being parsed from the message content.
+  
+  ## New Format:
+  - **Content**: Contains natural language mentions like "@Assistant Bot"
+  - **Mentions Array**: Explicit list of bot mentions with memberId and name
+  - **Validation**: The system verifies that the bot name matches the member ID
+  
+  ## Expected Flow:
+  1. User message is created with explicit mention data
+  2. System validates each mention (member ID exists, name matches)
+  3. Bot responds if valid mention is found
+  4. Response includes contextual information from ChatGPT
+  
+  ## Benefits:
+  - More natural mention syntax (@botname instead of #5)
+  - Client-side control over mention detection
+  - Better validation and error handling
+  - Support for multiple bot mentions in one message
+  
+  ## Verification:
+  After running this test, check:
+  ```bash
+  GET /messages/1
+  ```
+  Look for the bot's response after your message.
+}

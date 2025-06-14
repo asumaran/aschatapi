@@ -1,0 +1,40 @@
+meta {
+  name: Test Multiple Bot Mentions
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:4000/messages
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "channelId": 1,
+    "channelMemberId": 2,
+    "content": "Hey @Assistant Bot, what do you think about this? And @Assistant Bot, can you add more details?",
+    "mentions": [
+      {
+        "memberId": 5,
+        "name": "Assistant Bot"
+      }
+    ]
+  }
+}
+
+tests {
+  test("Should handle multiple mentions of same bot", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody()).to.have.property('id');
+    expect(res.getBody()).to.have.property('content');
+  });
+}
+
+docs {
+  **Test Multiple Mentions of Same Bot**
+  
+  Tests the system's ability to handle multiple @mentions of the same bot in a single message.
+  The system should only process the bot once per message regardless of how many times it's mentioned in the content.
+}

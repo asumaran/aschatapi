@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BotsService } from './bots.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ChatGPTService, ChatGPTMessage } from '../chatgpt/chatgpt.service';
+import { BotMention } from '../messages/dto/create-message.dto';
 
 @Injectable()
 export class BotMentionService {
@@ -37,6 +38,38 @@ export class BotMentionService {
         error,
       );
     });
+  }
+
+  /**
+   * Process explicit bot mentions from the request data
+   * @param messageContent - The content of the message
+   * @param channelId - The channel where the message was sent
+   * @param authorUserId - The ID of the user who sent the message
+   * @param messageId - The ID of the original message
+   * @param mentions - Array of explicit bot mentions
+   */
+  processExplicitMentions(
+    messageContent: string,
+    channelId: number,
+    authorUserId: number,
+    messageId: number,
+    mentions: BotMention[],
+  ): void {
+    // Process each mention independently in background
+    for (const mention of mentions) {
+      this.processExplicitBotMention(
+        messageContent,
+        channelId,
+        authorUserId,
+        messageId,
+        mention,
+      ).catch((error) => {
+        console.error(
+          `Error processing explicit bot mention for message ${messageId}, mention ${mention.memberId}:`,
+          error,
+        );
+      });
+    }
   }
 
   /**
@@ -116,6 +149,93 @@ export class BotMentionService {
     );
 
     console.log(`Bot mention processing completed for message ${messageId}`);
+  }
+
+  /**
+   * Internal method to process individual explicit bot mention
+   * @param messageContent - The content of the message
+   * @param channelId - The channel where the message was sent
+   * @param authorUserId - The ID of the user who sent the message
+   * @param messageId - The ID of the original message
+   * @param mention - The explicit bot mention data
+   */
+  private async processExplicitBotMention(
+    messageContent: string,
+    channelId: number,
+    authorUserId: number,
+    messageId: number,
+    mention: BotMention,
+  ): Promise<void> {
+    console.log(
+      `Starting explicit bot mention processing for message ${messageId}, bot member ${mention.memberId}`,
+    );
+
+    // Find the bot by membership ID
+    const botData = await this.botsService.findByMembershipId(mention.memberId);
+
+    if (!botData || !botData.bot?.isActive) {
+      console.log(
+        `Bot with member ID ${mention.memberId} not found or inactive`,
+      );
+      return;
+    }
+
+    // Verify the bot is in the correct channel
+    if (botData.channelMember.channelId !== channelId) {
+      console.log(`Bot ${mention.memberId} not in channel ${channelId}`);
+      return;
+    }
+
+    // Verify the bot name matches the provided mention name
+    if (botData.bot.name !== mention.name) {
+      console.log(
+        `Bot name mismatch: expected ${mention.name}, got ${botData.bot.name}`,
+      );
+      return;
+    }
+
+    // Generate response content using ChatGPT with full conversation context
+    let responseText: string;
+
+    try {
+      // Get channel context
+      const channel = await this.prisma.channel.findUnique({
+        where: { id: channelId },
+        select: { name: true },
+      });
+
+      // Use ChatGPT with full conversation context if available
+      if (this.chatgptService.isAvailable()) {
+        responseText = await this.generateContextualResponse(
+          messageContent,
+          channelId,
+          botData.bot.name,
+          channel?.name || 'Canal',
+        );
+      } else {
+        // ChatGPT not available, skip response
+        console.log(
+          `ChatGPT not available for message ${messageId}, skipping bot response`,
+        );
+        return;
+      }
+    } catch (error) {
+      console.error('Error generating ChatGPT response:', error);
+      // ChatGPT failed, skip response
+      return;
+    }
+
+    // Create bot response message
+    await this.botsService.createBotMessage(
+      botData.channelMember.id,
+      channelId,
+      responseText,
+      messageId,
+    );
+
+    console.log(
+      `Explicit bot mention processing completed for message ${messageId}, bot ${mention.name}`,
+    );
   }
 
   /**
